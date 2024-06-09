@@ -28,6 +28,23 @@ class SlackGuardianStack(Stack):
         # API Gateway
         api = apigw.RestApi(self, "LambdaRestApi")
 
+        # API Key
+        api_key = api.add_api_key("ApiKey")
+
+        # Usage Plan
+        plan = api.add_usage_plan("UsagePlan",
+            api_key=api_key,
+            throttle=apigw.ThrottleSettings(
+                rate_limit=10,  # Requests per second
+                burst_limit=2 
+            )
+        )
+
+        # Associate Usage Plan with API Stages
+        plan.add_api_stage(
+            stage=api.deployment_stage
+        )
+
         # Resource and Methods
         commands_resource = api.root.add_resource("commands")
         commands_resource.add_method("GET", apigw.LambdaIntegration(command_processor_lambda))
