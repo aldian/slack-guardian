@@ -12,16 +12,26 @@ class SlackGuardianStack(Stack):
         super().__init__(scope, id, **kwargs)
 
         # Lambda Functions
-        lambda_func_1 = _lambda.Function(
+        event_processor_lambda = _lambda.Function(
             self, "EventProcessor",
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="event_processor.handler",
         )
-
-        lambda_func_2 = _lambda.Function(
+        command_processor_lambda = _lambda.Function(
             self, "CommandHandler",
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="command_handler.handler",
         )
+
+        # API Gateway
+        api = apigw.RestApi(self, "LambdaRestApi")
+
+        # Resource and Methods
+        commands_resource = api.root.add_resource("commands")
+        commands_resource.add_method("GET", apigw.LambdaIntegration(command_processor_lambda))
+        commands_resource.add_method("POST", apigw.LambdaIntegration(command_processor_lambda))
+
+        events_resource = api.root.add_resource("events")
+        events_resource.add_method("POST", apigw.LambdaIntegration(event_processor_lambda))
