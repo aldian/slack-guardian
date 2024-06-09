@@ -33,12 +33,14 @@ class SlackGuardianStack(Stack):
 
         # Usage Plan
         plan = api.add_usage_plan("UsagePlan",
-            api_key=api_key,
             throttle=apigw.ThrottleSettings(
                 rate_limit=10,  # Requests per second
                 burst_limit=2 
             )
         )
+
+         # Associate API Key with Usage Plan
+        plan.add_api_key(api_key)
 
         # Associate Usage Plan with API Stages
         plan.add_api_stage(
