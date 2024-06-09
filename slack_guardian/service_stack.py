@@ -49,8 +49,17 @@ class SlackGuardianStack(Stack):
 
         # Resource and Methods
         commands_resource = api.root.add_resource("commands")
-        commands_resource.add_method("GET", apigw.LambdaIntegration(command_processor_lambda))
-        commands_resource.add_method("POST", apigw.LambdaIntegration(command_processor_lambda))
+        commands_resource.add_method(
+            "GET", apigw.LambdaIntegration(command_processor_lambda),
+            api_key_required=True,
+        )
+        commands_resource.add_method(
+            "POST", apigw.LambdaIntegration(command_processor_lambda),
+            api_key_required=True,
+        )
 
         events_resource = api.root.add_resource("events")
-        events_resource.add_method("POST", apigw.LambdaIntegration(event_processor_lambda))
+        events_resource.add_method(
+            "POST", apigw.LambdaIntegration(event_processor_lambda),
+            api_key_required=True,
+        )
