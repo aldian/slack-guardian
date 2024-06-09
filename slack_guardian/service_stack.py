@@ -1,15 +1,20 @@
-from constructs import Construct
 from aws_cdk import (
-    Stack,
-    CfnOutput,
-    aws_lambda as _lambda,
     aws_apigateway as apigw,
+    aws_lambda as _lambda,
+    aws_lambda_event_sources as lambda_event_sources,
+    aws_sqs as sqs,
+    CfnOutput,
+    Stack,
 )
+from constructs import Construct
 
 
 class SlackGuardianStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        # SQS Queue
+        queue = sqs.Queue(self, "SlackEventQueue")
 
         # Lambda Functions
         event_processor_lambda = _lambda.Function(
@@ -23,6 +28,21 @@ class SlackGuardianStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="command_handler.handler",
+        )
+        safety_analyzer_lambda = _lambda.Function(
+            self, "SafetyAnalyzer",
+            runtime=_lambda.Runtime.PYTHON_3_10,
+            code=_lambda.Code.from_asset("lambdas"),
+            handler="safety_analyzer.handler",
+        )
+
+        # Grant Lambda permissions
+        queue.grant_send_messages(event_processor_lambda)  # For sending
+        queue.grant_consume_messages(safety_analyzer_lambda)  # For consuming
+
+        # Add SQS event source to safety_analyzer_lambda
+        safety_analyzer_lambda.add_event_source(
+            lambda_event_sources.SqsEventSource(queue)
         )
 
         # API Gateway
