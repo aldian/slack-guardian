@@ -1,11 +1,7 @@
 import json
 
+
 def handler(event, context):
-    print('request: {}'.format(json.dumps(event)))
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'text/plain'
-        },
-        'body': 'Email Sender {}\n'.format(event)
-    }
+    for record in event['Records']:
+        message_body = json.loads(record['body'])
+        print('rMessage body: {}'.format(json.dumps(message_body)))

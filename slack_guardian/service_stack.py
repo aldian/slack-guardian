@@ -33,6 +33,11 @@ class SlackGuardianStack(Stack):
             sort_key=dynamodb.Attribute(name="Timestamp", type=dynamodb.AttributeType.NUMBER),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,  # For cost-effective scaling
         )
+        action_config_table = dynamodb.Table(
+            self, "ActionConfigTable",
+            partition_key=dynamodb.Attribute(name="ConcernType", type=dynamodb.AttributeType.STRING),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
+        )
 
         slack_secret_arn = ssm.StringParameter.value_for_string_parameter(
             self,
@@ -55,6 +60,9 @@ class SlackGuardianStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="command_handler.handler",
+            environment={
+                "ACTION_CONFIG_TABLE": action_config_table.table_name,
+            }
         )
         action_handler_lambda = _lambda.Function(
             self, "ActionHandler",
@@ -63,6 +71,7 @@ class SlackGuardianStack(Stack):
             handler="action_handler.handler",
             environment={
                 "SAFETY_ALERTS_TOPIC_ARN": safety_alerts_topic.topic_arn,
+                "ACTION_CONFIG_TABLE": action_config_table.table_name,
             }
         )
         safety_analyzer_lambda = _lambda.Function(
@@ -115,6 +124,8 @@ class SlackGuardianStack(Stack):
 
         # Grant Lambda Permissions
         analysis_results_table.grant_read_write_data(safety_analyzer_lambda)
+        action_config_table.grant_read_write_data(command_processor_lambda)
+        action_config_table.grant_read_data(action_handler_lambda)
 
         # API Gateway
         api = apigw.RestApi(self, "LambdaRestApi")
