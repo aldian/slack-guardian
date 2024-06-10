@@ -31,6 +31,7 @@ class SlackGuardianStack(Stack):
             environment={
                 "SLACK_SECRET_ARN": slack_secret_arn,
                 "SLACK_EVENT_QUEUE_URL": queue.queue_url,
+                "LOG_LEVEL": "DEBUG",
             }
         )
         command_processor_lambda = _lambda.Function(
