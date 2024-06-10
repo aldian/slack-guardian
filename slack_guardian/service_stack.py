@@ -6,6 +6,7 @@ from aws_cdk import (
     aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     aws_sqs as sqs,
+     aws_sns as sns,
     CfnOutput,
     Stack,
 )
@@ -17,6 +18,7 @@ class SlackGuardianStack(Stack):
         super().__init__(scope, id, **kwargs)
 
         queue = sqs.Queue(self, "SlackEventQueue")
+        safety_alerts_topic = sns.Topic(self, "SafetyAlertsTopic")
 
         # DynamoDB Table
         analysis_results_table = dynamodb.Table(
@@ -55,6 +57,9 @@ class SlackGuardianStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="action_handler.handler",
+            environment={
+                "SAFETY_ALERTS_TOPIC_ARN": safety_alerts_topic.topic_arn,
+            }
         )
         safety_analyzer_lambda = _lambda.Function(
             self, "SafetyAnalyzer",
@@ -67,6 +72,7 @@ class SlackGuardianStack(Stack):
             },
         )
         action_handler_lambda.grant_invoke(safety_analyzer_lambda)
+        safety_alerts_topic.grant_publish(action_handler_lambda)
 
         # Get Slack verification token from Secrets Manager
         slack_secret = secretsmanager.Secret.from_secret_attributes(
