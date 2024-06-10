@@ -9,7 +9,7 @@ def handler(event, context):
     secret_arn = os.environ['SLACK_SECRET_ARN']
     secrets_client = boto3.client("secretsmanager")
     get_secret_value_response = secrets_client.get_secret_value(SecretId=secret_arn)
-    secret_value = json.loads(get_secret_value_response['SecretString'])
+    secret_value = get_secret_value_response['SecretString']
     slack_verification_token = secret_value["slack-verification-token"]
 
     # Verification
