@@ -6,15 +6,7 @@ from urllib.parse import parse_qs
 
 
 def handler(event, context):
-    ssm_client = boto3.client('ssm')
     secret_arn = os.environ['SLACK_SECRET_ARN']
-
-    response = ssm_client.get_parameter(
-        Name=secret_arn,
-        WithDecryption=True
-    )
-    secret_arn = response["Parameter"]["Value"]
-
     secrets_client = boto3.client("secretsmanager")
     get_secret_value_response = secrets_client.get_secret_value(SecretId=secret_arn)
     secret_value = json.loads(get_secret_value_response['SecretString'])
