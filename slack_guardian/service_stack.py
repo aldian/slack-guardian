@@ -1,5 +1,6 @@
 from aws_cdk import (
     aws_apigateway as apigw,
+    aws_dynamodb as dynamodb,
     aws_lambda as _lambda,
     aws_lambda_event_sources as lambda_event_sources,
     aws_secretsmanager as secretsmanager,
@@ -16,6 +17,16 @@ class SlackGuardianStack(Stack):
         super().__init__(scope, id, **kwargs)
 
         queue = sqs.Queue(self, "SlackEventQueue")
+
+        # DynamoDB Table
+        analysis_results_table = dynamodb.Table(
+            self, "AnalysisResultsTable",
+            partition_key=dynamodb.Attribute(
+                name="MessageId", type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(name="Timestamp", type=dynamodb.AttributeType.NUMBER),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,  # For cost-effective scaling
+        )
 
         slack_secret_arn = ssm.StringParameter.value_for_string_parameter(
             self,
@@ -62,6 +73,9 @@ class SlackGuardianStack(Stack):
         safety_analyzer_lambda.add_event_source(
             lambda_event_sources.SqsEventSource(queue)
         )
+
+        # Grant Lambda Permissions
+        analysis_results_table.grant_read_write_data(safety_analyzer_lambda)
 
         # API Gateway
         api = apigw.RestApi(self, "LambdaRestApi")
