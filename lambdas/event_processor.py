@@ -18,12 +18,12 @@ def handler(event, context):
 
     # Verification
     body = event["body"]
-    logger.info(f"BODY ORIGINAL: {body}")
+    logger.error(f"BODY ORIGINAL: {body}")
     if event.get("isBase64Encoded"):  # Handle base64 encoded body
         body = base64.b64decode(body)
-    logger.info(f"BODY DECODED: {body}")
+    logger.error(f"BODY DECODED: {body}")
     body = parse_qs(body)
-    logger.info(f"BODY PARSED: {body}")
+    logger.debug(f"BODY PARSED: {body}")
 
     token = body.get("token", [None])[0]
     if token != slack_verification_token:
