@@ -50,6 +50,12 @@ class SlackGuardianStack(Stack):
             code=_lambda.Code.from_asset("lambdas"),
             handler="command_handler.handler",
         )
+        action_handler_lambda = _lambda.Function(
+            self, "ActionHandler",
+            runtime=_lambda.Runtime.PYTHON_3_10,
+            code=_lambda.Code.from_asset("lambdas"),
+            handler="action_handler.handler",
+        )
         safety_analyzer_lambda = _lambda.Function(
             self, "SafetyAnalyzer",
             runtime=_lambda.Runtime.PYTHON_3_10,
@@ -57,8 +63,10 @@ class SlackGuardianStack(Stack):
             handler="safety_analyzer.handler",
             environment={
                 "ANALYSIS_RESULTS_TABLE": analysis_results_table.table_name,
+                'ACTION_HANDLER_FUNCTION_NAME': action_handler_lambda.function_name,
             },
         )
+        action_handler_lambda.grant_invoke(safety_analyzer_lambda)
 
         # Get Slack verification token from Secrets Manager
         slack_secret = secretsmanager.Secret.from_secret_attributes(

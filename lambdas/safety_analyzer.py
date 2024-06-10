@@ -45,6 +45,12 @@ def handler(event, context):
             )
         except Exception as e:
             logging.error(f"Error storing analysis result in DynamoDB: {e}")
+            return
 
         # Take actions based on the analysis
         # ...
+        _lambda = boto3.client('lambda')
+        resp = _lambda.invoke(
+            FunctionName=os.environ['ACTION_HANDLER_FUNCTION_NAME'],
+            Payload=json.dumps(analysis_result),
+        )
