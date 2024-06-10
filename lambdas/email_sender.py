@@ -2,6 +2,6 @@ import json
 
 
 def handler(event, context):
-    for record in event['Records']:
+    for i, record in enumerate(event['Records']):
         message_body = json.loads(record['body'])
-        print('rMessage body: {}'.format(json.dumps(message_body)))
+        print('{:2d}. Message body: {}'.format(i + 1, json.dumps(message_body)))
