@@ -1,6 +1,7 @@
 import json
 import base64
 import boto3
+import logging
 import os
 from urllib.parse import parse_qs
 
@@ -13,9 +14,12 @@ def handler(event, context):
 
     # Verification
     body = event["body"]
+    logging.info(f"BODY ORIGINAL: {body}")
     if event.get("isBase64Encoded"):  # Handle base64 encoded body
         body = base64.b64decode(body)
+    logging.info(f"BODY DECODED: {body}")
     body = parse_qs(body)
+    logging.info(f"BODY PARSED: {body}")
 
     token = body.get("token", [None])[0]
     if token != slack_verification_token:
