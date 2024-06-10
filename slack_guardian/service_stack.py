@@ -6,7 +6,8 @@ from aws_cdk import (
     aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     aws_sqs as sqs,
-     aws_sns as sns,
+    aws_sns as sns,
+    aws_sns_subscriptions as subscriptions, 
     CfnOutput,
     Stack,
 )
@@ -19,6 +20,9 @@ class SlackGuardianStack(Stack):
 
         queue = sqs.Queue(self, "SlackEventQueue")
         safety_alerts_topic = sns.Topic(self, "SafetyAlertsTopic")
+        sqs_email_queue = sqs.Queue(self, "EmailNotificationsQueue")
+        sqs_slack_queue = sqs.Queue(self, "SlackNotificationsQueue")
+        sqs_sms_queue = sqs.Queue(self, "SmsNotificationsQueue")
 
         # DynamoDB Table
         analysis_results_table = dynamodb.Table(
@@ -71,8 +75,21 @@ class SlackGuardianStack(Stack):
                 'ACTION_HANDLER_FUNCTION_NAME': action_handler_lambda.function_name,
             },
         )
+        email_sender_lambda = _lambda.Function(
+            self,
+            "EmailSenderLambda",
+            runtime=_lambda.Runtime.PYTHON_3_10,
+            code=_lambda.Code.from_asset("lambdas"),
+            handler="email_sender.handler",
+        )
+
         action_handler_lambda.grant_invoke(safety_analyzer_lambda)
         safety_alerts_topic.grant_publish(action_handler_lambda)
+
+        # Subscribe SQS Queues to SNS Topic
+        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_email_queue))
+        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_slack_queue))
+        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_sms_queue))
 
         # Get Slack verification token from Secrets Manager
         slack_secret = secretsmanager.Secret.from_secret_attributes(
@@ -89,6 +106,11 @@ class SlackGuardianStack(Stack):
         # Add SQS event source to safety_analyzer_lambda
         safety_analyzer_lambda.add_event_source(
             lambda_event_sources.SqsEventSource(queue)
+        )
+
+        # Add SQS trigger to Email Sending Lambda
+        email_sender_lambda.add_event_source(
+            lambda_event_sources.SqsEventSource(sqs_email_queue)  
         )
 
         # Grant Lambda Permissions
