@@ -6,6 +6,10 @@ import os
 from urllib.parse import parse_qs
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
+
 def handler(event, context):
     secret_arn = os.environ['SLACK_SECRET_ARN']
     secrets_client = boto3.client("secretsmanager")
@@ -14,12 +18,12 @@ def handler(event, context):
 
     # Verification
     body = event["body"]
-    logging.info(f"BODY ORIGINAL: {body}")
+    logger.info(f"BODY ORIGINAL: {body}")
     if event.get("isBase64Encoded"):  # Handle base64 encoded body
         body = base64.b64decode(body)
-    logging.info(f"BODY DECODED: {body}")
+    logger.info(f"BODY DECODED: {body}")
     body = parse_qs(body)
-    logging.info(f"BODY PARSED: {body}")
+    logger.info(f"BODY PARSED: {body}")
 
     token = body.get("token", [None])[0]
     if token != slack_verification_token:
