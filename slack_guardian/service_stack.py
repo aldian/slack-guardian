@@ -1,7 +1,6 @@
 from aws_cdk import (
     aws_apigateway as apigw,
     aws_dynamodb as dynamodb,
-    aws_iam as iam,
     aws_lambda as _lambda,
     aws_lambda_event_sources as lambda_event_sources,
     aws_secretsmanager as secretsmanager,
@@ -56,6 +55,9 @@ class SlackGuardianStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="safety_analyzer.handler",
+            environment={
+                "ANALYSIS_RESULTS_TABLE": analysis_results_table.table_name,
+            },
         )
 
         # Get Slack verification token from Secrets Manager
@@ -74,14 +76,6 @@ class SlackGuardianStack(Stack):
         safety_analyzer_lambda.add_event_source(
             lambda_event_sources.SqsEventSource(queue)
         )
-
-        # IAM Policy for SafetyAnalyzer Lambda
-        safety_analyzer_policy = iam.PolicyStatement(
-            actions=["dynamodb:PutItem"], 
-            resources=[analysis_results_table.table_arn]  # Allow access to the specific table
-        )
-        # Attach Policy to SafetyAnalyzer Lambda Role
-        safety_analyzer_lambda.add_to_role_policy(safety_analyzer_policy)
 
         # Grant Lambda Permissions
         analysis_results_table.grant_read_write_data(safety_analyzer_lambda)

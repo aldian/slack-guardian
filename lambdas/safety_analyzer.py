@@ -1,12 +1,13 @@
 import json
 import logging
+import os
 
 import boto3
 
 
 def handler(event, context):
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('AnalysisResultsTable')  # Replace with your table name
+    table = dynamodb.Table(os.environ["ANALYSIS_RESULTS_TABLE"])
     # {'Records': [{'messageId': 'b6c9c6cc-7f33-4b29-8548-72884427cf0b', 'receiptHandle': 'AQEBl/P+9wpAVFxk5TUXVZH834Biqca7H1bLoMG1lAD6kiVc/hEEz7Nqb6HBdqbOK81Ci94M5hvOXFgsrbzpKNj6FxocOmnrn/2FUqiepJZnoGmODTT/D5fkx69d7EQmVSkEj8CtHB3j802MuTutaHS1F/e0yFH7iaK1z3AYJlAUZ9opFYnhDJBSt9QJVtjI2RX58sm1rK6UpAfmo2VucTDkC78pyzS1zO3gM1h9Uchtc8uqV0BHQ8MlNZKX0UicGtF2aqjq18OCAC6I9fbbJXQieRG0OWrtecKoatg5a2UWWqYW9byEgwUPhwuh/uJLd9yuBEq2tO6iTEtXxtH99RFN+Wyk+oBFXYCAEqgAfUcKR/V92qsouA+RyURfGkPJd8WhijHPo/23sZwHVP+lscm3oks/QifksyUwZstLQZjIpp9e72M5nnHkaxZMFTWQgUN7FsoUbqRbFH5jCNbSorzKwQ==', 'body': 
     #   '{
     #       "type": "app_mention", 
