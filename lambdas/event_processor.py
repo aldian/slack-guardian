@@ -1,7 +1,6 @@
 import json
 import base64
 import boto3
-import logging
 import os
 from urllib.parse import parse_qs
 
@@ -14,42 +13,27 @@ def handler(event, context):
 
     # Verification
     body = event["body"]
-    logging.error(f"BODY ORIGINAL: {body}")
     if event.get("isBase64Encoded"):  # Handle base64 encoded body
         body = base64.b64decode(body)
-    logging.error(f"BODY DECODED: {body}")
-    body = parse_qs(body)
-    logging.debug(f"BODY PARSED: {body}")
+    body = json.loads(body)
 
-    token = body.get("token", [None])[0]
+    token = body.get("token", None)
     if token != slack_verification_token:
         return {"statusCode": 401, "body": f"Unauthorized: {token} != {slack_verification_token}"}  # Stop unauthorized requests
 
     # Process the event
-    slack_event = json.loads(body.get("payload", ["{}"])[0])
-    event_type = slack_event.get("type")
-
-    if event_type == "url_verification":
-        # Respond to the initial Slack challenge
-        return {"statusCode": 200, "body": slack_event.get("challenge")}
-
-    elif event_type == "event_callback":
-        event_subtype = slack_event["event"]["type"]
-
-        if event_subtype == "app_mention":
-            QUEUE_URL = os.environ['SLACK_EVENT_QUEUE_URL']
-            sqs = boto3.client('sqs')
-
-            # Send to SQS for further processing
-            sqs.send_message(
-                QueueUrl=QUEUE_URL,
-                MessageBody=json.dumps(slack_event)
-            )
-
-            # Respond to Slack to acknowledge the event
-            return {"statusCode": 200, "body": "OK"}
-        else:
-            return {"statusCode": 200, "body": "Unsupported event"}  # Handle other event types if needed
-
-    else:
+    slack_event = body.get("event")
+    if not slack_event:
         return {"statusCode": 400, "body": "Invalid request"}
+
+    queue_url = os.environ['SLACK_EVENT_QUEUE_URL']
+    sqs = boto3.client('sqs')
+
+    # Send to SQS for further processing
+    sqs.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(slack_event)
+    )
+
+    # Respond to Slack to acknowledge the event
+    return {"statusCode": 200, "body": "OK"}
