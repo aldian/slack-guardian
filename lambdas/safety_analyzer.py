@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from decimal import Decimal
 
 import boto3
 
@@ -27,8 +28,8 @@ def handler(event, context):
             "hello": "world",
         }
 
-        # Convert Timestamp to float
-        timestamp = float(message_body.get('ts', 0))  # Convert to float
+        # Convert Timestamp to Decimal
+        timestamp = Decimal(str(message_body.get('ts', 0)))
 
         # Store analysis result in DynamoDB
         try:
