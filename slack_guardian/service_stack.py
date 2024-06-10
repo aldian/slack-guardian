@@ -2,6 +2,7 @@ from aws_cdk import (
     aws_apigateway as apigw,
     aws_lambda as _lambda,
     aws_lambda_event_sources as lambda_event_sources,
+    aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     aws_sqs as sqs,
     CfnOutput,
@@ -44,6 +45,14 @@ class SlackGuardianStack(Stack):
             code=_lambda.Code.from_asset("lambdas"),
             handler="safety_analyzer.handler",
         )
+
+        # Get Slack verification token from Secrets Manager
+        slack_secret = secretsmanager.Secret.from_secret_attributes(
+            self,
+            "SlackVerificationTokenSecret",
+            secret_complete_arn=slack_secret_arn,
+        )
+        slack_secret.grant_read(event_processor_lambda)
 
         # Grant Lambda permissions
         queue.grant_send_messages(event_processor_lambda)  # For sending
