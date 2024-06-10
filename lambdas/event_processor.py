@@ -9,8 +9,7 @@ def handler(event, context):
     secret_arn = os.environ['SLACK_SECRET_ARN']
     secrets_client = boto3.client("secretsmanager")
     get_secret_value_response = secrets_client.get_secret_value(SecretId=secret_arn)
-    secret_value = get_secret_value_response['SecretString']
-    slack_verification_token = secret_value["slack-verification-token"]
+    slack_verification_token = get_secret_value_response['SecretString']
 
     # Verification
     body = event["body"]
@@ -20,7 +19,7 @@ def handler(event, context):
 
     token = body.get("token", [None])[0]
     if token != slack_verification_token:
-        return {"statusCode": 401, "body": "Unauthorized"}  # Stop unauthorized requests
+        return {"statusCode": 401, "body": f"Unauthorized: {token} != {slack_verification_token}"}  # Stop unauthorized requests
 
     # Process the event
     slack_event = json.loads(body.get("payload", ["{}"])[0])
