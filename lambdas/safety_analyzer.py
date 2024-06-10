@@ -27,12 +27,15 @@ def handler(event, context):
             "hello": "world",
         }
 
+        # Convert Timestamp to float
+        timestamp = float(message_body.get('ts', 0))  # Convert to float
+
         # Store analysis result in DynamoDB
         try:
             table.put_item(
                 Item={
                     'MessageId': message_body.get('event_ts', 'unknown_timestamp'),  # Use event_ts as unique ID
-                    'Timestamp': message_body.get('ts', 0),  # Convert to float
+                    'Timestamp': timestamp,
                     'AnalysisResult': json.dumps(analysis_result),
                     'Channel': message_body.get('channel', 'unknown_channel'),
                     'User': message_body.get('user', 'unknown_user'),
