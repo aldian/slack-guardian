@@ -84,7 +84,7 @@ class SlackGuardianStack(Stack):
         safety_analyzer_lambda.add_to_role_policy(safety_analyzer_policy)
 
         # Grant Lambda Permissions
-        # analysis_results_table.grant_read_write_data(safety_analyzer_lambda)
+        analysis_results_table.grant_read_write_data(safety_analyzer_lambda)
 
         # API Gateway
         api = apigw.RestApi(self, "LambdaRestApi")

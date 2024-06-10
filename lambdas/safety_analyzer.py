@@ -23,6 +23,7 @@ def handler(event, context):
         # ...
         analysis_result = {
             # ... analysis result ...
+            "hello": "world",
         }
 
         # Store analysis result in DynamoDB
