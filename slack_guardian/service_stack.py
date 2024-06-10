@@ -2,7 +2,6 @@ from aws_cdk import (
     aws_apigateway as apigw,
     aws_lambda as _lambda,
     aws_lambda_event_sources as lambda_event_sources,
-    aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
     aws_sqs as sqs,
     CfnOutput,
@@ -15,18 +14,11 @@ class SlackGuardianStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        # SQS Queue
         queue = sqs.Queue(self, "SlackEventQueue")
 
         slack_secret_arn = ssm.StringParameter.value_for_string_parameter(
             self, 
             "/slack-guardian/slack-verification-token-arn"
-        )
-
-         # Get Slack verification token from Secrets Manager
-        slack_secret = secretsmanager.Secret.from_secret_attributes(
-            self, "SlackVerificationTokenSecret",
-            secret_complete_arn=slack_secret_arn,
         )
 
         # Lambda Functions
@@ -36,7 +28,7 @@ class SlackGuardianStack(Stack):
             code=_lambda.Code.from_asset("lambdas"),
             handler="event_processor.handler",
             environment={
-                "SLACK_VERIFICATION_TOKEN": slack_secret.secret_value_from_json("slack-verification-token").to_string(),
+                "SLACK_SECRET_ARN": slack_secret_arn,
                 "SLACK_EVENT_QUEUE_URL": queue.queue_url,
             }
         )

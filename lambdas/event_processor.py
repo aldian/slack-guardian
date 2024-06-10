@@ -4,10 +4,14 @@ import boto3
 import os
 from urllib.parse import parse_qs
 
-sqs = boto3.client('sqs')
-QUEUE_URL = os.environ['SLACK_EVENT_QUEUE_URL']  # Get queue URL from environment variable
 
 def handler(event, context):
+    secret_arn = os.environ["SLACK_SECRET_ARN"]
+    secrets_client = boto3.client("secretsmanager")
+    get_secret_value_response = secrets_client.get_secret_value(SecretId=secret_arn)
+    secret_value = json.loads(get_secret_value_response['SecretString'])
+    slack_verification_token = secret_value["slack-verification-token"]
+
     # Verification
     body = event["body"]
     if event.get("isBase64Encoded"):  # Handle base64 encoded body
@@ -15,7 +19,7 @@ def handler(event, context):
     body = parse_qs(body)
 
     token = body.get("token", [None])[0]
-    if token != os.environ['SLACK_VERIFICATION_TOKEN']:  # Compare with your token
+    if token != slack_verification_token:
         return {"statusCode": 401, "body": "Unauthorized"}  # Stop unauthorized requests
 
     # Process the event
@@ -30,6 +34,9 @@ def handler(event, context):
         event_subtype = slack_event["event"]["type"]
 
         if event_subtype == "app_mention":
+            QUEUE_URL = os.environ['SLACK_EVENT_QUEUE_URL']
+            sqs = boto3.client('sqs')
+
             # Send to SQS for further processing
             sqs.send_message(
                 QueueUrl=QUEUE_URL,
