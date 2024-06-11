@@ -40,7 +40,7 @@ def handler(event, context):
                     'AnalysisResult': json.dumps(analysis_result),
                     'Channel': message_body.get('channel', 'unknown_channel'),
                     'User': message_body.get('user', 'unknown_user'),
-                    'MessageContent': message_body.get('text', '')  # Optional
+                    'Message': json.dumps(message_body),
                 }
             )
         except Exception as e:
