@@ -58,8 +58,8 @@ def message_hello(message, say):
 @app.action("button_click")
 def action_button_click(body, ack, say):
     # Acknowledge the action
-    ack()
     say(f"<@{body['user']['id']}> clicked the button")
+    ack()
 
 
 def handler(event, context):
