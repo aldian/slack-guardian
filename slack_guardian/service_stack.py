@@ -185,5 +185,5 @@ class SlackGuardianStack(Stack):
         events_resource = api.root.add_resource("events")
         events_resource.add_method(
             "POST", apigw.LambdaIntegration(event_processor_lambda),
-            api_key_required=True,
+            # api_key_required=True,
         )
