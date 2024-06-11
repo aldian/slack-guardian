@@ -15,27 +15,16 @@ from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 # arn:aws:secretsmanager:us-east-1:818954087576:secret:slack-signing-secret-eZYVYu
 # arn:aws:secretsmanager:us-east-1:818954087576:secret:slack-bot-token-JHnfHB
 
-
-
-
 def handler(event, context):
-    print("EVENT:", event)
-    print("CONTEXT:", context)
-    secret_arn = os.environ['SLACK_SECRET_ARN']
     slack_signing_secret_arn = os.environ['SLACK_SIGNING_SECRET_ARN']
     slack_bot_token_arn = os.environ['SLACK_BOT_TOKEN_ARN']
     secrets_client = boto3.client("secretsmanager")
 
-    get_secret_value_response = secrets_client.get_secret_value(SecretId=secret_arn)
-    slack_verification_token = get_secret_value_response['SecretString']
-
     get_secret_value_response = secrets_client.get_secret_value(SecretId=slack_signing_secret_arn)
     slack_signing_secret = get_secret_value_response['SecretString']
-    print("TOKEN 1:", slack_signing_secret)
 
     get_secret_value_response = secrets_client.get_secret_value(SecretId=slack_bot_token_arn)
     slack_bot_token = get_secret_value_response['SecretString']
-    print("TOKEN 2.0:", slack_bot_token)
 
     # process_before_response must be True when running on FaaS
     app = App(
@@ -43,17 +32,15 @@ def handler(event, context):
         token=slack_bot_token,
         signing_secret=slack_signing_secret,
     )
-    print("PASS 1")
 
     slack_handler = SlackRequestHandler(app=app)
-    print("PASS 2")
 
     # Verification
     body = event["body"]
     if event.get("isBase64Encoded"):  # Handle base64 encoded body
         body = base64.b64decode(body)
     body = json.loads(body)
-    print("PASS 3")
+    print("BODY:", body)
 
     @app.message("hello")
     def message_hello(message, say):

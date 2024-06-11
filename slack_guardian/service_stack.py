@@ -39,10 +39,6 @@ class SlackGuardianStack(Stack):
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
 
-        slack_secret_arn = ssm.StringParameter.value_for_string_parameter(
-            self,
-            "/slack-guardian/slack-verification-token-arn",
-        )
         slack_signing_secret_arn = ssm.StringParameter.value_for_string_parameter(
             self,
             "/slack-guardian/slack-signing-secret-arn",
@@ -59,7 +55,6 @@ class SlackGuardianStack(Stack):
             code=_lambda.Code.from_asset("lambdas"),
             handler="event_processor.handler",
             environment={
-                "SLACK_SECRET_ARN": slack_secret_arn,
                 "SLACK_SIGNING_SECRET_ARN": slack_signing_secret_arn,
                 "SLACK_BOT_TOKEN_ARN": slack_bot_token_arn,
                 "SLACK_EVENT_QUEUE_URL": queue.queue_url,
@@ -113,12 +108,6 @@ class SlackGuardianStack(Stack):
         # Grant lambda to access secrets
         slack_secret = secretsmanager.Secret.from_secret_attributes(
             self,
-            "SlackVerificationTokenSecret",
-            secret_complete_arn=slack_secret_arn,
-        )
-        slack_secret.grant_read(event_processor_lambda)
-        slack_secret = secretsmanager.Secret.from_secret_attributes(
-            self,
             "SlackSigningSecret",
             secret_complete_arn=slack_signing_secret_arn,
         )
@@ -163,7 +152,7 @@ class SlackGuardianStack(Stack):
             )
         )
 
-         # Associate API Key with Usage Plan
+        # Associate API Key with Usage Plan
         plan.add_api_key(api_key)
 
         # Associate Usage Plan with API Stages
@@ -179,7 +168,7 @@ class SlackGuardianStack(Stack):
         )
         commands_resource.add_method(
             "POST", apigw.LambdaIntegration(command_processor_lambda),
-            api_key_required=True,
+            # api_key_required=True,
         )
 
         events_resource = api.root.add_resource("events")
