@@ -16,6 +16,8 @@ from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 # arn:aws:secretsmanager:us-east-1:818954087576:secret:slack-bot-token-JHnfHB
 
 
+
+
 def handler(event, context):
     print("EVENT:", event)
     print("CONTEXT:", context)
@@ -52,6 +54,30 @@ def handler(event, context):
         body = base64.b64decode(body)
     body = json.loads(body)
     print("PASS 3")
+
+    @app.message("hello")
+    def message_hello(message, say):
+        # say() sends a message to the channel where the event was triggered
+        say(
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f"Hey there <@{message['user']}>!"},
+                    "accessory": {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "Click Me"},
+                        "action_id": "button_click"
+                    }
+                }
+            ],
+            text=f"Hey there <@{message['user']}>!"
+        )
+
+    @app.action("button_click")
+    def action_button_click(body, ack, say):
+        # Acknowledge the action
+        ack()
+        say(f"<@{body['user']['id']}> clicked the button")
 
     #token = body.get("token", None)
     #if token != slack_verification_token:
