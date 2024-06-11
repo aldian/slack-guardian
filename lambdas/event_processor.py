@@ -33,7 +33,7 @@ def handler(event, context):
 
     get_secret_value_response = secrets_client.get_secret_value(SecretId=slack_bot_token_arn)
     slack_bot_token = get_secret_value_response['SecretString']
-    print("TOKEN 2:", slack_bot_token)
+    print("TOKEN 2.0:", slack_bot_token)
 
     # process_before_response must be True when running on FaaS
     app = App(
@@ -41,32 +41,35 @@ def handler(event, context):
         token=slack_bot_token,
         signing_secret=slack_signing_secret,
     )
+    print("PASS 1")
 
     slack_handler = SlackRequestHandler(app=app)
+    print("PASS 2")
 
     # Verification
     body = event["body"]
     if event.get("isBase64Encoded"):  # Handle base64 encoded body
         body = base64.b64decode(body)
     body = json.loads(body)
+    print("PASS 3")
 
-    token = body.get("token", None)
-    if token != slack_verification_token:
-        return {"statusCode": 401, "body": f"Unauthorized: {token} != {slack_verification_token}"}  # Stop unauthorized requests
+    #token = body.get("token", None)
+    #if token != slack_verification_token:
+    #    return {"statusCode": 401, "body": f"Unauthorized: {token} != {slack_verification_token}"}  # Stop unauthorized requests
 
     # Process the event
-    slack_event = body.get("event")
-    if not slack_event:
-        return {"statusCode": 400, "body": "Invalid request"}
+    #slack_event = body.get("event")
+    #if not slack_event:
+    #    return {"statusCode": 400, "body": "Invalid request"}
 
-    queue_url = os.environ['SLACK_EVENT_QUEUE_URL']
-    sqs = boto3.client('sqs')
+    #queue_url = os.environ['SLACK_EVENT_QUEUE_URL']
+    #sqs = boto3.client('sqs')
 
     # Send to SQS for further processing
-    sqs.send_message(
-        QueueUrl=queue_url,
-        MessageBody=json.dumps(slack_event)
-    )
+    #sqs.send_message(
+    #    QueueUrl=queue_url,
+    #    MessageBody=json.dumps(slack_event)
+    #)
 
     # Respond to Slack to acknowledge the event
     # return {"statusCode": 200, "body": "OK"}
