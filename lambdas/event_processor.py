@@ -27,10 +27,11 @@ def handler(event, context):
 
     get_secret_value_response = secrets_client.get_secret_value(SecretId=slack_signing_secret_arn)
     slack_signing_secret = get_secret_value_response['SecretString']
+    print("TOKEN 1:", slack_signing_secret)
 
     get_secret_value_response = secrets_client.get_secret_value(SecretId=slack_bot_token_arn)
     slack_bot_token = get_secret_value_response['SecretString']
-
+    print("TOKEN 2:", slack_bot_token)
 
     # process_before_response must be True when running on FaaS
     app = App(
@@ -67,4 +68,6 @@ def handler(event, context):
 
     # Respond to Slack to acknowledge the event
     # return {"statusCode": 200, "body": "OK"}
-    return slack_handler.handle(event, context)
+    resp = slack_handler.handle(event, context)
+    print("RESP:", resp)
+    return resp
