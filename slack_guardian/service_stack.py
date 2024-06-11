@@ -43,6 +43,14 @@ class SlackGuardianStack(Stack):
             self,
             "/slack-guardian/slack-verification-token-arn",
         )
+        slack_signing_secret_arn = ssm.StringParameter.value_for_string_parameter(
+            self,
+            "/slack-guardian/slack-signing-secret-arn",
+        )
+        slack_bot_token_arn = ssm.StringParameter.value_for_string_parameter(
+            self,
+            "/slack-guardian/slack-bot-token-arn",
+        )
 
         # Lambda Functions
         event_processor_lambda = _lambda.Function(
@@ -52,6 +60,8 @@ class SlackGuardianStack(Stack):
             handler="event_processor.handler",
             environment={
                 "SLACK_SECRET_ARN": slack_secret_arn,
+                "SLACK_SIGNING_SECRET_ARN": slack_signing_secret_arn,
+                "SLACK_BOT_TOKEN_ARN": slack_signing_secret_arn,
                 "SLACK_EVENT_QUEUE_URL": queue.queue_url,
             }
         )
