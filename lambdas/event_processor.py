@@ -17,6 +17,8 @@ from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
 
 def handler(event, context):
+    print("EVENT:", event)
+    print("CONTEXT:", context)
     secret_arn = os.environ['SLACK_SECRET_ARN']
     slack_signing_secret_arn = os.environ['SLACK_SIGNING_SECRET_ARN']
     slack_bot_token_arn = os.environ['SLACK_BOT_TOKEN_ARN']
