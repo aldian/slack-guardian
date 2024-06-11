@@ -61,7 +61,7 @@ class SlackGuardianStack(Stack):
             environment={
                 "SLACK_SECRET_ARN": slack_secret_arn,
                 "SLACK_SIGNING_SECRET_ARN": slack_signing_secret_arn,
-                "SLACK_BOT_TOKEN_ARN": slack_signing_secret_arn,
+                "SLACK_BOT_TOKEN_ARN": slack_bot_token_arn,
                 "SLACK_EVENT_QUEUE_URL": queue.queue_url,
             }
         )
