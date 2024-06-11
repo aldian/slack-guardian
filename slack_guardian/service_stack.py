@@ -110,11 +110,23 @@ class SlackGuardianStack(Stack):
         safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_slack_queue))
         safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_sms_queue))
 
-        # Get Slack verification token from Secrets Manager
+        # Grant lambda to access secrets
         slack_secret = secretsmanager.Secret.from_secret_attributes(
             self,
             "SlackVerificationTokenSecret",
             secret_complete_arn=slack_secret_arn,
+        )
+        slack_secret.grant_read(event_processor_lambda)
+        slack_secret = secretsmanager.Secret.from_secret_attributes(
+            self,
+            "SlackSigningSecret",
+            secret_complete_arn=slack_signing_secret_arn,
+        )
+        slack_secret.grant_read(event_processor_lambda)
+        slack_secret = secretsmanager.Secret.from_secret_attributes(
+            self,
+            "SlackBotToken",
+            secret_complete_arn=slack_bot_token_arn,
         )
         slack_secret.grant_read(event_processor_lambda)
 
