@@ -32,6 +32,9 @@ app = App(
     signing_secret=slack_signing_secret,
 )
 
+queue_url = os.environ['SLACK_EVENT_QUEUE_URL']
+sqs = boto3.client('sqs')
+
 
 @app.message("hello")
 def message_hello(message, say):
@@ -82,14 +85,15 @@ def handler(event, context):
     #queue_url = os.environ['SLACK_EVENT_QUEUE_URL']
     #sqs = boto3.client('sqs')
 
-    # Send to SQS for further processing
-    #sqs.send_message(
-    #    QueueUrl=queue_url,
-    #    MessageBody=json.dumps(slack_event)
-    #)
+    slack_event = body.get("event")
+    if slack_event:
+        # Send to SQS for further processing
+        sqs.send_message(
+            QueueUrl=queue_url,
+            MessageBody=json.dumps(slack_event)
+        )
 
     # Respond to Slack to acknowledge the event
-    # return {"statusCode": 200, "body": "OK"}
     resp = slack_handler.handle(event, context)
     print("RESP:", resp)
     return resp
