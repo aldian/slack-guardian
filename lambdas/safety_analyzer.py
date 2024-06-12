@@ -66,7 +66,23 @@ def handler(event, context):
             print("Error analyzing message:", e)
             continue
 
+        message_id = message_body.get('event_ts', 'unknown_timestamp')
         timestamp = Decimal(str(message_body.get('ts', 0)))
+
+         # Check if the record already exists in DynamoDB
+        try:
+            existing_item = table.get_item(
+                Key={
+                    'MessageId': message_id,
+                    'Timestamp': timestamp
+                }
+            )
+            if 'Item' in existing_item:
+                print(f"Record with MessageId {message_id} and Timestamp {timestamp} already exists. Skipping.")
+                continue
+        except Exception as e:
+            logging.error(f"Error checking for existing record in DynamoDB: {e}")
+            continue
 
         # Store analysis result in DynamoDB
         try:
