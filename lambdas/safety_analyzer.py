@@ -20,17 +20,18 @@ def handler(event, context):
     openai_client = OpenAI(
         api_key=openai_secret_key,
     )
-    print("PASS 3", openai_secret_key)
+    #print("PASS 3", openai_secret_key)
+    print("PASS 3")
 
-    completion = openai_client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
-            {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
-        ]
-    )
-    print("PASS 4")
-    print("CHATGPT result:", completion.choices[0].message)
+    # completion = openai_client.chat.completions.create(
+    #     model="gpt-3.5-turbo",
+    #     messages=[
+    #         {"role": "system", "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
+    #         {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
+    #     ]
+    # )
+    # print("PASS 4")
+    # print("CHATGPT result:", completion.choices[0].message)
 
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ["ANALYSIS_RESULTS_TABLE"])
