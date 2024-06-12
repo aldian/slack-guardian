@@ -147,7 +147,12 @@ class SlackGuardianStack(Stack):
 
         # Add SQS event source to safety_analyzer_lambda
         safety_analyzer_lambda.add_event_source(
-            lambda_event_sources.SqsEventSource(slack_event_queue)
+            lambda_event_sources.SqsEventSource(
+                slack_event_queue,
+                batch_size=1,
+                enabled=True,
+                report_batch_item_failures=True
+            )
         )
 
         # Add SQS trigger to Slack Sending Lambda
