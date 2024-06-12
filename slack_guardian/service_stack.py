@@ -20,7 +20,8 @@ class SlackGuardianStack(Stack):
         super().__init__(scope, id, **kwargs)
 
         slack_event_queue = sqs.Queue(
-            self, "SlackEventQueue", visibility_timeout=Duration.minutes(15) 
+            self, "SlackEventQueue", 
+            visibility_timeout=Duration.minutes(15),
         )
         safety_alerts_topic = sns.Topic(self, "SafetyAlertsTopic")
         email_sending_queue = sqs.Queue(self, "EmailNotificationsQueue")
@@ -146,7 +147,12 @@ class SlackGuardianStack(Stack):
 
         # Add SQS event source to safety_analyzer_lambda
         safety_analyzer_lambda.add_event_source(
-            lambda_event_sources.SqsEventSource(slack_event_queue)
+            lambda_event_sources.SqsEventSource(
+                slack_event_queue,
+                batch_size=1,  # Process messages one at a time
+                enabled=True,
+                report_batch_item_failures=True  # Ensure individual message failures are reported
+            )
         )
 
         # Add SQS trigger to Slack Sending Lambda
