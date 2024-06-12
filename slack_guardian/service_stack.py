@@ -104,6 +104,9 @@ class SlackGuardianStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="slack_sender.handler",
+            environment={
+                "SLACK_BOT_TOKEN_ARN": slack_bot_token_arn,
+            },
         )
 
         action_handler_lambda.grant_invoke(safety_analyzer_lambda)
@@ -127,6 +130,7 @@ class SlackGuardianStack(Stack):
             secret_complete_arn=slack_bot_token_arn,
         )
         slack_secret.grant_read(event_processor_lambda)
+        slack_secret.grant_read(slack_sender_lambda)
         slack_secret = secretsmanager.Secret.from_secret_attributes(
             self,
             "OpenAISecretKey",

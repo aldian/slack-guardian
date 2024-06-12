@@ -105,12 +105,10 @@ def handler(event, context):
 
         # Take actions based on the analysis
         # ...
-        print("BEFORE INVOKING ACTION HANDLER FUNCTION")
         try:
             _lambda.invoke(
                 FunctionName=os.environ['ACTION_HANDLER_FUNCTION_NAME'],
                 Payload=json.dumps({"text": analysis_result}),
             )
-            print("AFTER INVOKING ACTION HANDLER FUNCTION")
         except Exception as e:
             print("Error invoking action handler function:", e)

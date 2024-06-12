@@ -6,7 +6,7 @@ import boto3
 
 
 def handler(event, context):
-    logging.error('REQUEST: {} {}'.format(type(event), event))
+    print('REQUEST: {} {}'.format(type(event), event))
 
     sns_client = boto3.client('sns')
     topic_arn = os.environ['SAFETY_ALERTS_TOPIC_ARN']
