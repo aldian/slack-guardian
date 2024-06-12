@@ -48,3 +48,5 @@ def handler(event, context):
         except Exception as e:
             logging.error(f"{e}")
             continue
+
+    return {"statusCode": 200, "body": json.dumps({"message": "Success"})}
