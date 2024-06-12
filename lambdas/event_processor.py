@@ -7,13 +7,6 @@ from urllib.parse import parse_qs
 from slack_bolt import App
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
-# Initializes your app with your bot token and signing secret
-#app = App(
-#    token=os.environ.get("SLACK_BOT_TOKEN"),
-#    signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
-#)
-# arn:aws:secretsmanager:us-east-1:818954087576:secret:slack-signing-secret-eZYVYu
-# arn:aws:secretsmanager:us-east-1:818954087576:secret:slack-bot-token-JHnfHB
 
 slack_signing_secret_arn = os.environ['SLACK_SIGNING_SECRET_ARN']
 slack_bot_token_arn = os.environ['SLACK_BOT_TOKEN_ARN']
@@ -86,14 +79,16 @@ def handler(event, context):
     #sqs = boto3.client('sqs')
 
     slack_event = body.get("event")
-    if slack_event:
-        # Send to SQS for further processing
-        sqs.send_message(
-            QueueUrl=queue_url,
-            MessageBody=json.dumps(slack_event)
-        )
+    if not slack_event:
+        return slack_handler.handle(event, context)
 
-    # Respond to Slack to acknowledge the event
-    resp = slack_handler.handle(event, context)
-    print("RESP:", resp)
-    return resp
+    if slack_event.get("bot_id"):
+        # Ignore messages from bots
+        return slack_handler.handle(event, context)
+    
+    sqs.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(slack_event)
+    )
+
+    return slack_handler.handle(event, context)
