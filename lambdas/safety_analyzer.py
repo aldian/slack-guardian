@@ -19,6 +19,15 @@ def handler(event, context):
         api_key=openai_secret_key,
     )
 
+    completion = openai_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
+            {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
+        ]
+    )
+    print("CHATGPT result:", completion.choices[0].message)
+
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ["ANALYSIS_RESULTS_TABLE"])
     # {'Records': [{'messageId': 'b6c9c6cc-7f33-4b29-8548-72884427cf0b', 'receiptHandle': 'AQEBl/P+9wpAVFxk5TUXVZH834Biqca7H1bLoMG1lAD6kiVc/hEEz7Nqb6HBdqbOK81Ci94M5hvOXFgsrbzpKNj6FxocOmnrn/2FUqiepJZnoGmODTT/D5fkx69d7EQmVSkEj8CtHB3j802MuTutaHS1F/e0yFH7iaK1z3AYJlAUZ9opFYnhDJBSt9QJVtjI2RX58sm1rK6UpAfmo2VucTDkC78pyzS1zO3gM1h9Uchtc8uqV0BHQ8MlNZKX0UicGtF2aqjq18OCAC6I9fbbJXQieRG0OWrtecKoatg5a2UWWqYW9byEgwUPhwuh/uJLd9yuBEq2tO6iTEtXxtH99RFN+Wyk+oBFXYCAEqgAfUcKR/V92qsouA+RyURfGkPJd8WhijHPo/23sZwHVP+lscm3oks/QifksyUwZstLQZjIpp9e72M5nnHkaxZMFTWQgUN7FsoUbqRbFH5jCNbSorzKwQ==', 'body': 
