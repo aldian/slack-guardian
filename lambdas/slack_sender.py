@@ -43,8 +43,8 @@ def handler(event, context):
         try:
             result = slack_client.chat_postMessage(
                 channel=channel['id'],
-                text=message,
+                text=message["text"],
             )
-        except SlackApiError as e:
+        except Exception as e:
             logging.error(f"{e}")
             continue
