@@ -67,7 +67,7 @@ def handler(event, context):
     for record in event['Records']:
         message_body = json.loads(record['body'])
 
-        result = CONCERN_NONE
+        analysis_result = CONCERN_NONE
         try:
             completion = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -76,20 +76,12 @@ def handler(event, context):
                     {"role": "user", "content": message_body.get("text", "")}
                 ]
             )
-            result = completion.choices[0].message.content
-            print("CHATGPT result:\n", result)
+            analysis_result = completion.choices[0].message.content
+            print("CHATGPT result:\n", analysis_result)
         except Exception as e:
             print("Error analyzing message:", e)
             continue
 
-        # Perform safety analysis on the message_body
-        # ...
-        analysis_result = {
-            # ... analysis result ...
-            "hello": "world",
-        }
-
-        # Convert Timestamp to Decimal
         timestamp = Decimal(str(message_body.get('ts', 0)))
 
         # Store analysis result in DynamoDB
@@ -98,7 +90,7 @@ def handler(event, context):
                 Item={
                     'MessageId': message_body.get('event_ts', 'unknown_timestamp'),  # Use event_ts as unique ID
                     'Timestamp': timestamp,
-                    'AnalysisResult': result,
+                    'AnalysisResult': analysis_result,
                     'Channel': message_body.get('channel', 'unknown_channel'),
                     'User': message_body.get('user', 'unknown_user'),
                     'Message': json.dumps(message_body),
@@ -108,12 +100,14 @@ def handler(event, context):
             logging.error(f"Error storing analysis result in DynamoDB: {e}")
             continue
 
-        if result.strip() == CONCERN_NONE:
+        if analysis_result.strip() == CONCERN_NONE:
             continue
 
         # Take actions based on the analysis
         # ...
+        print("BEFORE INVOKING ACTION HANDLER FUNCTION")
         _lambda.invoke(
             FunctionName=os.environ['ACTION_HANDLER_FUNCTION_NAME'],
-            Payload=json.dumps(analysis_result),
+            Payload=analysis_result,
         )
+        print("AFTER INVOKING ACTION HANDLER FUNCTION")

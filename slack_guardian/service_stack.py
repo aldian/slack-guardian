@@ -98,12 +98,12 @@ class SlackGuardianStack(Stack):
                 "OPENAI_SECRET_KEY_ARN": openai_secret_key_arn,
             },
         )
-        email_sender_lambda = _lambda.Function(
+        slack_sender_lambda = _lambda.Function(
             self,
-            "EmailSenderLambda",
+            "SlackSenderLambda",
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
-            handler="email_sender.handler",
+            handler="slack_sender.handler",
         )
 
         action_handler_lambda.grant_invoke(safety_analyzer_lambda)
@@ -143,9 +143,9 @@ class SlackGuardianStack(Stack):
             lambda_event_sources.SqsEventSource(queue)
         )
 
-        # Add SQS trigger to Email Sending Lambda
-        email_sender_lambda.add_event_source(
-            lambda_event_sources.SqsEventSource(sqs_email_queue)  
+        # Add SQS trigger to Slack Sending Lambda
+        slack_sender_lambda.add_event_source(
+            lambda_event_sources.SqsEventSource(sqs_slack_queue)  
         )
 
         # Grant Lambda Permissions
