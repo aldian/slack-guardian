@@ -19,8 +19,8 @@ class SlackGuardianStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        slack_event_queue = sqs.Queue(self, "SlackEventQueue"
-            visibility_timeout=Duration.minutes(15) 
+        slack_event_queue = sqs.Queue(
+            self, "SlackEventQueue", visibility_timeout=Duration.minutes(15) 
         )
         safety_alerts_topic = sns.Topic(self, "SafetyAlertsTopic")
         email_sending_queue = sqs.Queue(self, "EmailNotificationsQueue")
