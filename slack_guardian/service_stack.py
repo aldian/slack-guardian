@@ -129,7 +129,7 @@ class SlackGuardianStack(Stack):
             "OpenAISecretKey",
             secret_complete_arn=openai_secret_key_arn,
         )
-        slack_secret.grant_read(event_processor_lambda)
+        slack_secret.grant_read(safety_analyzer_lambda)
 
         # Grant Lambda permissions
         queue.grant_send_messages(event_processor_lambda)  # For sending
