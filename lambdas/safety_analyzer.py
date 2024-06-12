@@ -12,12 +12,15 @@ secrets_client = boto3.client("secretsmanager")
 
 
 def handler(event, context):
+    print("PASS 1")
     get_secret_value_response = secrets_client.get_secret_value(SecretId=openai_secret_key_arn)
     openai_secret_key = get_secret_value_response['SecretString']
+    print("PASS 2")
 
     openai_client = OpenAI(
         api_key=openai_secret_key,
     )
+    print("PASS 3", openai_secret_key)
 
     completion = openai_client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -26,6 +29,7 @@ def handler(event, context):
             {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
         ]
     )
+    print("PASS 4")
     print("CHATGPT result:", completion.choices[0].message)
 
     dynamodb = boto3.resource('dynamodb')
