@@ -2,7 +2,6 @@ import json
 import base64
 import boto3
 import os
-from urllib.parse import parse_qs
 
 from slack_bolt import App
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
@@ -18,7 +17,6 @@ slack_signing_secret = get_secret_value_response['SecretString']
 get_secret_value_response = secrets_client.get_secret_value(SecretId=slack_bot_token_arn)
 slack_bot_token = get_secret_value_response['SecretString']
 
-# process_before_response must be True when running on FaaS
 app = App(
     process_before_response=True,
     token=slack_bot_token,
@@ -29,61 +27,22 @@ queue_url = os.environ['SLACK_EVENT_QUEUE_URL']
 sqs = boto3.client('sqs')
 
 
-@app.message("hello")
-def message_hello(message, say):
-    # say() sends a message to the channel where the event was triggered
-    say(
-        blocks=[
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": f"Hey there <@{message['user']}>!"},
-                "accessory": {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Click Me"},
-                    "action_id": "button_click"
-                }
-            }
-        ],
-        text=f"Hey there <@{message['user']}>!"
-    )
-
-
-@app.action("button_click")
-def action_button_click(body, ack, say):
-    # Acknowledge the action
-    ack()
-    say(f"<@{body['user']['id']}> clicked the button")
-
-
 def handler(event, context):
 
     slack_handler = SlackRequestHandler(app=app)
 
-    # Verification
     body = event["body"]
-    if event.get("isBase64Encoded"):  # Handle base64 encoded body
+    if event.get("isBase64Encoded"):
         body = base64.b64decode(body)
     body = json.loads(body)
     print("BODY:", body)
-
-    #token = body.get("token", None)
-    #if token != slack_verification_token:
-    #    return {"statusCode": 401, "body": f"Unauthorized: {token} != {slack_verification_token}"}  # Stop unauthorized requests
-
-    # Process the event
-    #slack_event = body.get("event")
-    #if not slack_event:
-    #    return {"statusCode": 400, "body": "Invalid request"}
-
-    #queue_url = os.environ['SLACK_EVENT_QUEUE_URL']
-    #sqs = boto3.client('sqs')
 
     slack_event = body.get("event")
     if not slack_event:
         return slack_handler.handle(event, context)
 
-    if slack_event.get("bot_id"):
-        # Ignore messages from bots
+    if slack_event.get("bot_id") or slack_event.get("subtype"):
+        # Ignore messages from bots or subtype
         return slack_handler.handle(event, context)
     
     sqs.send_message(
