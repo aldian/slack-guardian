@@ -108,6 +108,6 @@ def handler(event, context):
         print("BEFORE INVOKING ACTION HANDLER FUNCTION")
         _lambda.invoke(
             FunctionName=os.environ['ACTION_HANDLER_FUNCTION_NAME'],
-            Payload=analysis_result,
+            Payload={"text": analysis_result},
         )
         print("AFTER INVOKING ACTION HANDLER FUNCTION")

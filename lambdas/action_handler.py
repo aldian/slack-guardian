@@ -14,7 +14,7 @@ def handler(event, context):
     try:
         sns_client.publish(
             TopicArn=topic_arn,
-            Message=event,  
+            Message=json.dumps(event),  
             Subject='SlackGuardian Safety Alert' 
         )
     except Exception as e:
