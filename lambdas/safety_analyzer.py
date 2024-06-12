@@ -109,7 +109,7 @@ def handler(event, context):
         try:
             _lambda.invoke(
                 FunctionName=os.environ['ACTION_HANDLER_FUNCTION_NAME'],
-                Payload=json.dumps{{"text": analysis_result}},
+                Payload=json.dumps({"text": analysis_result}),
             )
             print("AFTER INVOKING ACTION HANDLER FUNCTION")
         except Exception as e:
