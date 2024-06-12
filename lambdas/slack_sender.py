@@ -42,7 +42,7 @@ def handler(event, context):
 
         try:
             result = slack_client.chat_postMessage(
-                channel=channel['id'],
+                channel=channel_id,
                 text=message["text"],
             )
         except Exception as e:
