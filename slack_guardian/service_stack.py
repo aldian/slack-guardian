@@ -39,6 +39,7 @@ class SlackGuardianStack(Stack):
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST
         )
 
+        # ARNs to secrets
         slack_signing_secret_arn = ssm.StringParameter.value_for_string_parameter(
             self,
             "/slack-guardian/slack-signing-secret-arn",
@@ -46,6 +47,10 @@ class SlackGuardianStack(Stack):
         slack_bot_token_arn = ssm.StringParameter.value_for_string_parameter(
             self,
             "/slack-guardian/slack-bot-token-arn",
+        )
+        openai_secret_key_arn = ssm.StringParameter.value_for_string_parameter(
+            self,
+            "/slack-guardian/openai-secret-key-arn",
         )
 
         # Lambda Functions
@@ -87,6 +92,7 @@ class SlackGuardianStack(Stack):
             environment={
                 "ANALYSIS_RESULTS_TABLE": analysis_results_table.table_name,
                 'ACTION_HANDLER_FUNCTION_NAME': action_handler_lambda.function_name,
+                "OPENAI_SECRET_KEY_ARN": openai_secret_key_arn,
             },
         )
         email_sender_lambda = _lambda.Function(
@@ -116,6 +122,12 @@ class SlackGuardianStack(Stack):
             self,
             "SlackBotToken",
             secret_complete_arn=slack_bot_token_arn,
+        )
+        slack_secret.grant_read(event_processor_lambda)
+        slack_secret = secretsmanager.Secret.from_secret_attributes(
+            self,
+            "OpenAISecretKey",
+            secret_complete_arn=openai_secret_key_arn,
         )
         slack_secret.grant_read(event_processor_lambda)
 

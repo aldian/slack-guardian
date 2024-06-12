@@ -4,9 +4,21 @@ import os
 from decimal import Decimal
 
 import boto3
+from openai import OpenAI
+
+
+openai_secret_key_arn = os.environ['OPENAI_SECRET_KEY_ARN']
+secrets_client = boto3.client("secretsmanager")
 
 
 def handler(event, context):
+    get_secret_value_response = secrets_client.get_secret_value(SecretId=openai_secret_key_arn)
+    openai_secret_key = get_secret_value_response['SecretString']
+
+    openai_client = OpenAI(
+        api_key=openai_secret_key,
+    )
+
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ["ANALYSIS_RESULTS_TABLE"])
     # {'Records': [{'messageId': 'b6c9c6cc-7f33-4b29-8548-72884427cf0b', 'receiptHandle': 'AQEBl/P+9wpAVFxk5TUXVZH834Biqca7H1bLoMG1lAD6kiVc/hEEz7Nqb6HBdqbOK81Ci94M5hvOXFgsrbzpKNj6FxocOmnrn/2FUqiepJZnoGmODTT/D5fkx69d7EQmVSkEj8CtHB3j802MuTutaHS1F/e0yFH7iaK1z3AYJlAUZ9opFYnhDJBSt9QJVtjI2RX58sm1rK6UpAfmo2VucTDkC78pyzS1zO3gM1h9Uchtc8uqV0BHQ8MlNZKX0UicGtF2aqjq18OCAC6I9fbbJXQieRG0OWrtecKoatg5a2UWWqYW9byEgwUPhwuh/uJLd9yuBEq2tO6iTEtXxtH99RFN+Wyk+oBFXYCAEqgAfUcKR/V92qsouA+RyURfGkPJd8WhijHPo/23sZwHVP+lscm3oks/QifksyUwZstLQZjIpp9e72M5nnHkaxZMFTWQgUN7FsoUbqRbFH5jCNbSorzKwQ==', 'body': 
