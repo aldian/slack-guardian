@@ -19,11 +19,13 @@ class SlackGuardianStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        queue = sqs.Queue(self, "SlackEventQueue")
+        slack_event_queue = sqs.Queue(self, "SlackEventQueue"
+            visibility_timeout=Duration.minutes(15) 
+        )
         safety_alerts_topic = sns.Topic(self, "SafetyAlertsTopic")
-        sqs_email_queue = sqs.Queue(self, "EmailNotificationsQueue")
-        sqs_slack_queue = sqs.Queue(self, "SlackNotificationsQueue")
-        sqs_sms_queue = sqs.Queue(self, "SmsNotificationsQueue")
+        email_sending_queue = sqs.Queue(self, "EmailNotificationsQueue")
+        slack_sending_queue = sqs.Queue(self, "SlackNotificationsQueue")
+        sms_sending_queue = sqs.Queue(self, "SmsNotificationsQueue")
 
         # DynamoDB Table
         analysis_results_table = dynamodb.Table(
@@ -63,7 +65,7 @@ class SlackGuardianStack(Stack):
             environment={
                 "SLACK_SIGNING_SECRET_ARN": slack_signing_secret_arn,
                 "SLACK_BOT_TOKEN_ARN": slack_bot_token_arn,
-                "SLACK_EVENT_QUEUE_URL": queue.queue_url,
+                "SLACK_EVENT_QUEUE_URL": slack_event_queue.queue_url,
             }
         )
         command_processor_lambda = _lambda.Function(
@@ -113,9 +115,9 @@ class SlackGuardianStack(Stack):
         safety_alerts_topic.grant_publish(action_handler_lambda)
 
         # Subscribe SQS Queues to SNS Topic
-        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_email_queue))
-        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_slack_queue))
-        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sqs_sms_queue))
+        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(email_sending_queue))
+        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(slack_sending_queue))
+        safety_alerts_topic.add_subscription(subscriptions.SqsSubscription(sms_sending_queue))
 
         # Grant lambda to access secrets
         slack_secret = secretsmanager.Secret.from_secret_attributes(
@@ -139,17 +141,17 @@ class SlackGuardianStack(Stack):
         slack_secret.grant_read(safety_analyzer_lambda)
 
         # Grant Lambda permissions
-        queue.grant_send_messages(event_processor_lambda)  # For sending
-        queue.grant_consume_messages(safety_analyzer_lambda)  # For consuming
+        slack_event_queue.grant_send_messages(event_processor_lambda)
+        slack_event_queue.grant_consume_messages(safety_analyzer_lambda)
 
         # Add SQS event source to safety_analyzer_lambda
         safety_analyzer_lambda.add_event_source(
-            lambda_event_sources.SqsEventSource(queue)
+            lambda_event_sources.SqsEventSource(slack_event_queue)
         )
 
         # Add SQS trigger to Slack Sending Lambda
         slack_sender_lambda.add_event_source(
-            lambda_event_sources.SqsEventSource(sqs_slack_queue)  
+            lambda_event_sources.SqsEventSource(slack_sending_queue)  
         )
 
         # Grant Lambda Permissions
@@ -187,11 +189,9 @@ class SlackGuardianStack(Stack):
         )
         commands_resource.add_method(
             "POST", apigw.LambdaIntegration(command_processor_lambda),
-            # api_key_required=True,
         )
 
         events_resource = api.root.add_resource("events")
         events_resource.add_method(
             "POST", apigw.LambdaIntegration(event_processor_lambda),
-            # api_key_required=True,
         )
