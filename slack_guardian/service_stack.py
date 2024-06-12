@@ -9,7 +9,7 @@ from aws_cdk import (
     aws_sns as sns,
     aws_sns_subscriptions as subscriptions, 
     CfnOutput,
-    core,
+    Duration,
     Stack,
 )
 from constructs import Construct
@@ -90,7 +90,7 @@ class SlackGuardianStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_10,
             code=_lambda.Code.from_asset("lambdas"),
             handler="safety_analyzer.handler",
-            timeout=core.Duration.minutes(15),
+            timeout=Duration.minutes(15),
             memory_size=512,
             environment={
                 "ANALYSIS_RESULTS_TABLE": analysis_results_table.table_name,
