@@ -39,6 +39,7 @@ _lambda = boto3.client('lambda')
 
 
 def handler(event, context):
+    print("SAFETY ANALYZER LAMBDA. event:", event)
     get_secret_value_response = secrets_client.get_secret_value(SecretId=openai_secret_key_arn)
     openai_secret_key = get_secret_value_response['SecretString']
 
@@ -46,7 +47,8 @@ def handler(event, context):
         api_key=openai_secret_key,
     )
 
-    for record in event['Records']:
+    for i, record in enumerate(event['Records']):
+        print("QUEUE RECORD", i + 1, ":", record)
         message_body = json.loads(record['body'])
 
         analysis_result = CONCERN_NONE
