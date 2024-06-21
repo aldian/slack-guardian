@@ -54,7 +54,8 @@ def handler(event, context):
         analysis_result = CONCERN_NONE
         try:
             completion = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                # model="gpt-3.5-turbo",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": analyzer_specification.strip()},
                     {"role": "user", "content": message_body.get("text", "")}
