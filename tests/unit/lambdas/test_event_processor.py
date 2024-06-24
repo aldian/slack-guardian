@@ -1,4 +1,6 @@
+import base64
 import os
+import json
 from unittest import mock
 
 import boto3
@@ -21,8 +23,35 @@ boto3.client.side_effect = boto3_client
 slack_bolt.App = mock.MagicMock()
 
 from lambdas import event_processor
-#from slack_guardian.lambdas.event_processor import handler
 
 
-def test_handler():
-    pass
+def test_ignore_non_user_message(): 
+    body = {
+        "event": {
+            "bot_id": "bot_id",
+            "subtype": "subtype"
+        }
+    }
+    response = event_processor.handler({
+        "body": base64.b64encode(json.dumps(body).encode()).decode(),
+        "isBase64Encoded": True,
+    }, None)
+
+
+def test_not_a_slack_event():
+    body = {
+        "hello": "world",
+    }
+    response = event_processor.handler({"body": json.dumps(body)}, None)
+
+
+
+def test_user_message(): 
+    body = {
+        "event": {
+            "type": "message",
+        }
+    }
+    response = event_processor.handler({
+        "body": json.dumps(body),
+    }, None)

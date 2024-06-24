@@ -1,10 +1,11 @@
 import json
 import logging
 import os
+import sys
 from decimal import Decimal
 
 import boto3
-from openai import OpenAI
+import openai
 
 
 CONCERN_NONE = "No safety concerns identified."
@@ -39,11 +40,10 @@ _lambda = boto3.client('lambda')
 
 
 def handler(event, context):
-    print("SAFETY ANALYZER LAMBDA. event:", event)
     get_secret_value_response = secrets_client.get_secret_value(SecretId=openai_secret_key_arn)
     openai_secret_key = get_secret_value_response['SecretString']
 
-    openai_client = OpenAI(
+    openai_client = openai.OpenAI(
         api_key=openai_secret_key,
     )
 
