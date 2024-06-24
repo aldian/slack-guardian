@@ -3,3 +3,6 @@ deploy:
 
 destroy:
 	cdk destroy
+
+test:
+	pytest
