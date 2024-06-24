@@ -3,8 +3,10 @@ import base64
 import boto3
 import os
 
-from slack_bolt import App
-from slack_bolt.adapter.aws_lambda import SlackRequestHandler
+import slack_bolt
+#from slack_bolt import App
+#from slack_bolt.adapter.aws_lambda import SlackRequestHandler
+from slack_bolt.adapter import aws_lambda
 
 
 slack_signing_secret_arn = os.environ['SLACK_SIGNING_SECRET_ARN']
@@ -17,7 +19,7 @@ slack_signing_secret = get_secret_value_response['SecretString']
 get_secret_value_response = secrets_client.get_secret_value(SecretId=slack_bot_token_arn)
 slack_bot_token = get_secret_value_response['SecretString']
 
-app = App(
+app = slack_bolt.App(
     process_before_response=True,
     token=slack_bot_token,
     signing_secret=slack_signing_secret,
@@ -29,7 +31,7 @@ sqs = boto3.client('sqs')
 
 def handler(event, context):
 
-    slack_handler = SlackRequestHandler(app=app)
+    slack_handler = aws_lambda.SlackRequestHandler(app=app)
 
     body = event["body"]
     if event.get("isBase64Encoded"):

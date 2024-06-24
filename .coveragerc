@@ -1,0 +1,4 @@
+[run]
+include = 
+	slack_guardian/*.py
+	lambdas/*.py
