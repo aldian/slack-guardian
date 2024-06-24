@@ -5,11 +5,7 @@ from slack_guardian.pipeline_stack import SlackGuardianPipelineStack
 
 # example tests. To run these tests, uncomment this file along with the example
 # resource in slack_guardian/pipeline_stack.py
-def test_sqs_queue_created():
+def test_pipeline_stack():
     app = core.App()
     stack = SlackGuardianPipelineStack(app, "SlackGuardianPipelineStack")
     template = assertions.Template.from_stack(stack)
-
-#     template.has_resource_properties("AWS::SQS::Queue", {
-#         "VisibilityTimeout": 300
-#     })
