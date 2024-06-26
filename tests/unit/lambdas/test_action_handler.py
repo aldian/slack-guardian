@@ -2,8 +2,8 @@ import os
 from unittest import mock
 
 import boto3
+import pytest
 
-from lambdas import action_handler
 
 
 os.environ['SAFETY_ALERTS_TOPIC_ARN'] = 'TESTING-ARN'
@@ -13,8 +13,16 @@ def boto3_client(service_name):
     client = mock.MagicMock()
     return client
 
-boto3.client = mock.MagicMock()
-boto3.client.side_effect = boto3_client
+
+@pytest.fixture(autouse=True)
+def run_before_and_after_tests(tmpdir):
+    boto3.client = mock.MagicMock()
+    boto3.client.side_effect = boto3_client
+
+    yield
+
+
+from lambdas import action_handler
 
 
 def test_success():

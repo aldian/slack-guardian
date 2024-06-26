@@ -1,9 +1,11 @@
 import base64
 import os
 import json
+from importlib import reload
 from unittest import mock
 
 import boto3
+import pytest
 import slack_bolt
 
 os.environ['SLACK_SIGNING_SECRET_ARN'] = 'TESTING-ARN'
@@ -17,15 +19,21 @@ def boto3_client(service_name):
 
     return client
 
-boto3.client = mock.MagicMock()
-boto3.client.side_effect = boto3_client
 
 slack_bolt.App = mock.MagicMock()
 
-from lambdas import event_processor
+
+@pytest.fixture(autouse=True)
+def run_before_and_after_tests(tmpdir):
+    boto3.client = mock.MagicMock()
+    boto3.client.side_effect = boto3_client
+
+    yield
 
 
 def test_ignore_non_user_message(): 
+    from lambdas import event_processor
+    event_processor = reload(event_processor)
     body = {
         "event": {
             "bot_id": "bot_id",
@@ -39,6 +47,8 @@ def test_ignore_non_user_message():
 
 
 def test_not_a_slack_event():
+    from lambdas import event_processor
+    event_processor = reload(event_processor)
     body = {
         "hello": "world",
     }
@@ -47,6 +57,8 @@ def test_not_a_slack_event():
 
 
 def test_user_message(): 
+    from lambdas import event_processor
+    event_processor = reload(event_processor)
     body = {
         "event": {
             "type": "message",

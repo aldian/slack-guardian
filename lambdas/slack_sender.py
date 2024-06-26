@@ -3,7 +3,7 @@ import logging
 import os
 
 import boto3
-from slack_sdk import WebClient
+import slack_sdk
 from slack_sdk.errors import SlackApiError
 
 
@@ -15,7 +15,7 @@ slack_bot_token = get_secret_value_response['SecretString']
 
 
 def handler(event, context):
-    slack_client = WebClient(token=slack_bot_token)
+    slack_client = slack_sdk.WebClient(token=slack_bot_token)
 
     channel_id = None
     try:

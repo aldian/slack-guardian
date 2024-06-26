@@ -5,6 +5,8 @@ from unittest import mock
 
 import boto3
 import openai
+import pytest
+
 
 OPENAI_SECRET_ARN_1 = "OPENAI_SECRET_ARN_1"
 OPENAI_SECRET_ARN_2 = "OPENAI_SECRET_ARN_2"
@@ -74,9 +76,6 @@ def boto3_client(service_name):
 
     return client
 
-boto3.client = mock.MagicMock()
-boto3.client.side_effect = boto3_client
-
 
 def openai_client(api_key):
     client = mock.MagicMock()
@@ -95,6 +94,14 @@ def openai_client(api_key):
 
 openai.OpenAI = mock.MagicMock()
 openai.OpenAI.side_effect = openai_client
+
+
+@pytest.fixture(autouse=True)
+def run_before_and_after_tests(tmpdir):
+    boto3.client = mock.MagicMock()
+    boto3.client.side_effect = boto3_client
+
+    yield
 
 
 def test_success(): 
