@@ -1,6 +1,6 @@
 # Slack Guardian
 
-Slack Guardian is a project designed to manage and monitor Slack workspaces using AWS Lambda and AWS CDK. This README provides information on setting up, running, and testing the project.
+Slack Guardian is a project designed to manage and monitor Slack workspaces using AWS Lambda and AWS CDK. It uses OpenAI to analyze slack messages.
 
 ## Table of Contents
 
@@ -76,7 +76,8 @@ Before you begin, ensure you have met the following requirements:
 1. Create a new app on `api.slack.com`.
 2. Copy the Slack bot token to the AWS Secret Manager. Name it `slack-bot-token`.
 3. Copy the Slack signing secret to the AWS Secret Manager. Name it `slack-signing-secret`.
-4. Configure your GitHub token and copy it to the AWS Secret Manager. Name it `github-token`.
+4. Create your OpenAI secret key and copy it to the AWS Secret Manager. Name it `openai-secret-key`.
+5. Configure your GitHub token and copy it to the AWS Secret Manager. Name it `github-token`.
 
 ## Usage
 
