@@ -1,4 +1,5 @@
 from aws_cdk import (
+    SecretValue,
     Stack,
 )
 from constructs import Construct
@@ -15,7 +16,10 @@ class SlackGuardianPipelineStack(Stack):
             self, "Pipeline",
             pipeline_name="SlackGuardianPipeline",
             synth=ShellStep("Synth",
-                input=CodePipelineSource.git_hub("aldian/slack-guardian", "main"),
+                input=CodePipelineSource.git_hub(
+                    "aldian/slack-guardian", "main"
+                    authentication=SecretValue.secrets_manager("github-token-aws"),
+                ),
                 commands=[
                     "npm install -g aws-cdk",
                     "python -m pip install -r requirements.txt",
